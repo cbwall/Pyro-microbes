@@ -1,7 +1,7 @@
 ---
 title: "Pyromania part 3"
 author: "C Wall"
-date: "4/20/2022"
+date: "9/13/2023"
 output:
   html_document:
     code_folding: hide
@@ -13,7 +13,35 @@ output:
     toc_depth: '4'
 ---
 
-Pyromania data for zooplanktona and chlorophyll
+## Project overview
+The goal of the *Pyromania project* is to test how terrestrial subsides (plant biomass loading or "browning") and burning influence aquatic productivity, water quality/chemistry, and trophic transfer. We used a manipulative experiment to assess a range of plant material quantities (0-400g per tank) and fire treatment (burned vs unburned material) and the non-linearity of these effects on aquatic systems through 4 time-point samplings. We used 400L aquatic mesocosms and ran the experiment for ~90d in 2021-2022.  
+
+<center>  
+  
+![**Figure**. Images showing (**A**) controlled burning of plant material, (**B**) dried unburned plants and (**C**) packed plant material in mesh bags, (**D**) visual differences in water quality between tanks receiving high (left) and low (right) amounts of plant detritus, and (E) the experimental mesocosm array at the University of San Diego Biological Field Station.](output/Cody_tanks.jpg){width=80%}
+  
+</center>  
+
+**DATA SETS**  
+This data set is among 3 to be generated for the project and focuses on:  
+
+(1) **microbes (16S rRNA) communities** over time and in 'reservoirs'
+- water-borne microbes
+- associated with plant detritus
+- host-associated (zooplankton and insect [mosquito] larvae)
+(2) **microbial cell abundance**, assessed through flow cytometry of autotrophic and heterotrophic cells
+(3) **zooplankton community**, primarily Daphniidae (cladocerans) and copepods 
+(4) **δ^13^C of greenhouse gases** carbon dioxide (CO~2~), methane (CH~4~)
+  
+  
+**TIME POINTS**  
+
+* Time-0 (**T0**) = before the addition of plant materials, plankton were stocked at this stage  
+* Time-1 (**T1**) = 10 days after the addition of plant materials  
+* Time-2 (**T2**) = 31 days after ...  
+* Time-3 (**T3**) = 59 days after ...  
+* Time-4 (**T4**) = 89 days after ... 
+
 ```{r setup chunk, setup, include = FALSE, cache=FALSE, message=FALSE, warning=FALSE}
 if (!require('knitr')) install.packages('knitr'); library('knitr')
 knitr::opts_chunk$set(warning=FALSE, message=FALSE, fig.align='center')
@@ -43,7 +71,8 @@ Fig.formatting<-(theme_classic()) +
 
 ```
 
-### FCM
+### FCM. 
+Flow Cytometry data here is used to determine the abundance of autotrophic (primary producers, photosynthesizers) and heterotrophic (no photopigments) bacterial cells. 
 ```{r}
 fcm.df<-read.csv("data/pyro_fcm_data.csv")
 
@@ -51,7 +80,7 @@ cols<-c("Time.point", "Tank", "Treatment")
 fcm.df[cols] <- lapply(fcm.df[cols], factor) # make all these factors
 ```
 
-Do Autofluorescence
+Do autofluorescence
 ```{r FCM AF, results='hide', fig.show='hide'}
 ### Time 1
 ######## T1 model
@@ -1101,7 +1130,7 @@ cyclo.T2.mod.plot<-
   geom_point(data=zoop.all[(zoop.all$Time.point=="T2"),], 
              aes(x=plant.mass..g, y=cyclopoid, color=Treatment)) +
   scale_color_manual(values = c("brown1", "mediumseagreen")) + 
-  coord_cartesian(ylim=c(0, 8)) +
+  coord_cartesian(ylim=c(0, 15)) +
   ggtitle("Day-31") +
   ylab("cyclopoid density (#/L)") +
   xlab("plant material (g)") +
@@ -1139,7 +1168,7 @@ cyclo.T3.mod.plot<-
   geom_point(data=zoop.all[(zoop.all$Time.point=="T3"),], 
              aes(x=plant.mass..g, y=cyclopoid, color=Treatment)) +
   scale_color_manual(values = c("brown1", "mediumseagreen")) + 
-  coord_cartesian(ylim=c(0, 8)) +
+  coord_cartesian(ylim=c(0, 15)) +
   ggtitle("Day-59") +
   ylab("cyclopoid density (#/L)") +
   xlab("plant material (g)") +
@@ -1176,7 +1205,7 @@ cyclo.T4.mod.plot<-
   geom_point(data=zoop.all[(zoop.all$Time.point=="T4"),], 
              aes(x=plant.mass..g, y=cyclopoid, color=Treatment)) +
   scale_color_manual(values = c("brown1", "mediumseagreen")) + 
-  coord_cartesian(ylim=c(0, 8)) +
+  coord_cartesian(ylim=c(0, 15)) +
   ggtitle("Day-89") +
   ylab("cyclopoid density (#/L)") +
   xlab("plant material (g)") +
@@ -1398,6 +1427,407 @@ naup.T4.mod.plot<-
 
 ```
 
+### Daphniidae density
+```{r, Daphniidae}
+######### Daphniidae
+
+zoop.all$Daphniidae<-zoop.all$all_daphnia + zoop.all$ceriodaphnia + zoop.all$bosmina
+
+
+######## T0 model
+m1.daphniid.T0<-gam(Daphniidae~ Treatment + s(plant.mass..g, by= Treatment), subset = Time.point=="T0", data = zoop.all, method = "REML")
+
+m2.daphniid.T0<-gam(Daphniidae ~  Treatment + s(plant.mass..g), subset = Time.point=="T0", data = zoop.all, method = "REML")
+
+m3.daphniid.T0<-gam(Daphniidae ~  s(plant.mass..g), subset = Time.point=="T0", data = zoop.all, method = "REML")
+
+T0.daphniid.AIC<-AIC(m1.daphniid.T0, m2.daphniid.T0, m3.daphniid.T0)
+# best is smoother solo
+
+summary(m3.daphniid.T0)
+anova.gam(m3.daphniid.T0)
+gam.check(m3.daphniid.T0, rep=1000)
+draw(m3.daphniid.T0)
+concrvity(m3.daphniid.T0)
+par(mfrow = c(2, 2))
+plot(m3.daphniid.T0, all.terms = TRUE, page=1)
+
+###########  
+#plot for the model output on rawdata
+daphniid.T0.mod.plot<-
+  plot_smooths(
+  model = m3.daphniid.T0,
+  series = plant.mass..g,
+) + 
+  geom_point(data=zoop.all[(zoop.all$Time.point=="T0"),], 
+             aes(x=plant.mass..g, y=Daphniidae, color=Treatment)) +
+  scale_color_manual(values = c("brown1", "mediumseagreen")) + 
+  coord_cartesian(ylim=c(0, 60)) +
+  ggtitle("Day-0") +
+  ylab("Daphniidae density (#/L)") +
+  xlab("plant material (g)") +
+  Fig.formatting
+
+
+
+######## T1 model
+m1.daphniid.T1<-gam(Daphniidae~ Treatment + s(plant.mass..g, by= Treatment), subset = Time.point=="T1", data = zoop.all, method = "REML")
+
+m2.daphniid.T1<-gam(Daphniidae ~  Treatment + s(plant.mass..g), subset = Time.point=="T1", data = zoop.all, method = "REML")
+
+m3.daphniid.T1<-gam(Daphniidae ~  s(plant.mass..g), subset = Time.point=="T1", data = zoop.all, method = "REML")
+
+T1.daphniid.AIC<-AIC(m1.daphniid.T1, m2.daphniid.T1, m3.daphniid.T1)
+# best is smoother solo
+
+summary(m3.daphniid.T1)
+anova.gam(m3.daphniid.T1)
+gam.check(m3.daphniid.T1, rep=1000)
+draw(m3.daphniid.T1)
+concrvity(m3.daphniid.T1)
+par(mfrow = c(2, 2))
+plot(m3.daphniid.T1, all.terms = TRUE, page=1)
+
+###########  
+#plot for the model output on rawdata
+daphniid.T1.mod.plot<-
+  plot_smooths(
+  model = m3.daphniid.T1,
+  series = plant.mass..g,
+) + 
+  geom_point(data=zoop.all[(zoop.all$Time.point=="T1"),], 
+             aes(x=plant.mass..g, y=Daphniidae, color=Treatment)) +
+  scale_color_manual(values = c("brown1", "mediumseagreen")) + 
+  coord_cartesian(ylim=c(0, 60)) +
+  ggtitle("Day-10") +
+  ylab("Daphniidae density (#/L)") +
+  xlab("plant material (g)") +
+  Fig.formatting
+
+
+
+############################
+######## T2 model
+m1.daphniid.T2<-gam(Daphniidae~ Treatment + s(plant.mass..g, by= Treatment), subset = Time.point=="T2", data = zoop.all, method = "REML")
+
+m2.daphniid.T2<-gam(Daphniidae ~  Treatment + s(plant.mass..g), subset = Time.point=="T2", data = zoop.all, method = "REML")
+
+m3.daphniid.T2<-gam(Daphniidae ~  s(plant.mass..g), subset = Time.point=="T2", data = zoop.all, method = "REML")
+
+T2.daphniid.AIC<-AIC(m1.daphniid.T2, m2.daphniid.T2, m3.daphniid.T2)
+# best is smoother solo
+
+summary(m3.daphniid.T2)
+anova.gam(m3.daphniid.T2)
+gam.check(m3.daphniid.T2, rep=1000)
+draw(m3.daphniid.T2)
+concrvity(m3.daphniid.T2)
+par(mfrow = c(2, 2))
+plot(m3.daphniid.T2, all.terms = TRUE, page=1)
+
+
+###########  
+#plot for the model output on rawdata
+daphniid.T2.mod.plot<-
+  plot_smooths(
+  model = m3.daphniid.T2,
+  series = plant.mass..g,
+) + 
+  geom_point(data=zoop.all[(zoop.all$Time.point=="T2"),], 
+             aes(x=plant.mass..g, y=Daphniidae, color=Treatment)) +
+  scale_color_manual(values = c("brown1", "mediumseagreen")) + 
+  coord_cartesian(ylim=c(0, 60)) +
+  ggtitle("Day-31") +
+  ylab("Daphniidae density (#/L)") +
+  xlab("plant material (g)") +
+  Fig.formatting
+
+
+
+############################
+######## T3 model
+m1.daphniid.T3<-gam(Daphniidae~ Treatment + s(plant.mass..g, by= Treatment), subset = Time.point=="T3", data = zoop.all, method = "REML")
+
+m2.daphniid.T3<-gam(Daphniidae ~  Treatment + s(plant.mass..g), subset = Time.point=="T3", data = zoop.all, method = "REML")
+
+m3.daphniid.T3<-gam(Daphniidae ~  s(plant.mass..g), subset = Time.point=="T3", data = zoop.all, method = "REML")
+
+T3.daphniid.AIC<-AIC(m1.daphniid.T3, m2.daphniid.T3, m3.daphniid.T3)
+# best is smoother solo
+
+summary(m1.daphniid.T3)
+anova.gam(m1.daphniid.T3)
+gam.check(m1.daphniid.T3, rep=1000)
+draw(m1.daphniid.T3)
+concrvity(m1.daphniid.T3)
+par(mfrow = c(2, 2))
+plot(m1.daphniid.T3, all.terms = TRUE, page=1)
+
+
+# model predictions
+daphniid.diff.T3<-plot_difference(
+  m1.daphniid.T3,
+  series = plant.mass..g,
+  difference = list(Treatment = c("burned", "unburned"))
+)
+
+daphniid.T3.diff.plot<-plot_grid(daphniid.diff.T3 + ggtitle("Daphniidae, Day-59"))
+ggsave("figures/daphniid.diff.T3.pdf", height=4, width=4)
+
+
+###########  
+#plot for the model output on rawdata
+daphniid.T3.mod.plot<-
+  plot_smooths(
+  model = m1.daphniid.T3,
+  series = plant.mass..g,
+  comparison=Treatment,
+) + 
+  geom_point(data=zoop.all[(zoop.all$Time.point=="T3"),], 
+             aes(x=plant.mass..g, y=Daphniidae, color=Treatment)) +
+  scale_color_manual(values = c("brown1", "mediumseagreen")) + 
+  coord_cartesian(ylim=c(0, 60)) +
+  ggtitle("Day-59") +
+  ylab("Daphniidae density (#/L)") +
+  xlab("plant material (g)") +
+  Fig.formatting
+
+
+############################
+######## T4 model
+m1.daphniid.T4<-gam(Daphniidae~ Treatment + s(plant.mass..g, by= Treatment), subset = Time.point=="T4", data = zoop.all, method = "REML")
+
+m2.daphniid.T4<-gam(Daphniidae ~  Treatment + s(plant.mass..g), subset = Time.point=="T4", data = zoop.all, method = "REML")
+
+m3.daphniid.T4<-gam(Daphniidae ~  s(plant.mass..g), subset = Time.point=="T4", data = zoop.all, method = "REML")
+
+T4.daphniid.AIC<-AIC(m1.daphniid.T4, m2.daphniid.T4, m3.daphniid.T4)
+# best is smoother solo
+
+summary(m3.daphniid.T4)
+anova.gam(m3.daphniid.T4)
+gam.check(m3.daphniid.T4, rep=1000)
+draw(m3.daphniid.T4)
+concrvity(m3.daphniid.T4)
+par(mfrow = c(2, 2))
+plot(m3.daphniid.T4, all.terms = TRUE, page=1)
+
+
+
+###########  
+#plot for the model output on rawdata
+daphniid.T4.mod.plot<-
+  plot_smooths(
+  model = m3.daphniid.T4,
+  series = plant.mass..g,
+) + 
+  geom_point(data=zoop.all[(zoop.all$Time.point=="T4"),], 
+             aes(x=plant.mass..g, y=Daphniidae, color=Treatment)) +
+  scale_color_manual(values = c("brown1", "mediumseagreen")) + 
+  coord_cartesian(ylim=c(0, 60)) +
+  ggtitle("Day-89") +
+  ylab("Daphniidae density (#/L)") +
+  xlab("plant material (g)") +
+  Fig.formatting
+
+```
+
+### Copepods grouped
+```{r, Copepods}
+######### Copepods
+
+zoop.all$Copepods<-zoop.all$calanoid + zoop.all$cyclopoid + zoop.all$nauplii
+
+
+######## T0 model
+m1.Copep.T0<-gam(Copepods~ Treatment + s(plant.mass..g, by= Treatment), subset = Time.point=="T0", data = zoop.all, method = "REML")
+
+m2.Copep.T0<-gam(Copepods ~  Treatment + s(plant.mass..g), subset = Time.point=="T0", data = zoop.all, method = "REML")
+
+m3.Copep.T0<-gam(Copepods ~  s(plant.mass..g), subset = Time.point=="T0", data = zoop.all, method = "REML")
+
+T0.Copep.AIC<-AIC(m1.Copep.T0, m2.Copep.T0, m3.Copep.T0)
+# best is separate smoother
+
+summary(m1.Copep.T0)
+anova.gam(m1.Copep.T0)
+gam.check(m1.Copep.T0, rep=1000)
+draw(m1.Copep.T0)
+concrvity(m1.Copep.T0)
+par(mfrow = c(2, 2))
+plot(m1.Copep.T0, all.terms = TRUE, page=1)
+
+###########  
+#plot for the model output on rawdata
+Copep.T0.mod.plot<-
+  plot_smooths(
+  model = m1.Copep.T0,
+  series = plant.mass..g,
+  comparison=Treatment,
+) + 
+  geom_point(data=zoop.all[(zoop.all$Time.point=="T0"),], 
+             aes(x=plant.mass..g, y=Copepods, color=Treatment)) +
+  scale_color_manual(values = c("brown1", "mediumseagreen")) + 
+  coord_cartesian(ylim=c(0, 30)) +
+  ggtitle("Day-0") +
+  ylab("Copepod density (#/L)") +
+  xlab("plant material (g)") +
+  Fig.formatting
+
+
+
+######## T1 model
+m1.Copep.T1<-gam(Copepods~ Treatment + s(plant.mass..g, by= Treatment), subset = Time.point=="T1", data = zoop.all, method = "REML")
+
+m2.Copep.T1<-gam(Copepods ~  Treatment + s(plant.mass..g), subset = Time.point=="T1", data = zoop.all, method = "REML")
+
+m3.Copep.T1<-gam(Copepods ~  s(plant.mass..g), subset = Time.point=="T1", data = zoop.all, method = "REML")
+
+T1.Copep.AIC<-AIC(m1.Copep.T1, m2.Copep.T1, m3.Copep.T1)
+# best is smoother solo
+
+summary(m3.Copep.T1)
+anova.gam(m3.Copep.T1)
+gam.check(m3.Copep.T1, rep=1000)
+draw(m3.Copep.T1)
+concrvity(m3.Copep.T1)
+par(mfrow = c(2, 2))
+plot(m3.Copep.T1, all.terms = TRUE, page=1)
+
+###########  
+#plot for the model output on rawdata
+Copep.T1.mod.plot<-
+  plot_smooths(
+  model = m3.Copep.T1,
+  series = plant.mass..g,
+) + 
+  geom_point(data=zoop.all[(zoop.all$Time.point=="T1"),], 
+             aes(x=plant.mass..g, y=Copepods, color=Treatment)) +
+  scale_color_manual(values = c("brown1", "mediumseagreen")) + 
+  coord_cartesian(ylim=c(0, 30)) +
+  ggtitle("Day-10") +
+  ylab("Copepods density (#/L)") +
+  xlab("plant material (g)") +
+  Fig.formatting
+
+
+
+############################
+######## T2 model
+m1.Copep.T2<-gam(Copepods~ Treatment + s(plant.mass..g, by= Treatment), subset = Time.point=="T2", data = zoop.all, method = "REML")
+
+m2.Copep.T2<-gam(Copepods ~  Treatment + s(plant.mass..g), subset = Time.point=="T2", data = zoop.all, method = "REML")
+
+m3.Copep.T2<-gam(Copepods ~  s(plant.mass..g), subset = Time.point=="T2", data = zoop.all, method = "REML")
+
+T2.Copep.AIC<-AIC(m1.Copep.T2, m2.Copep.T2, m3.Copep.T2)
+# best is smoother solo
+
+summary(m1.Copep.T2)
+anova.gam(m1.Copep.T2)
+gam.check(m1.Copep.T2, rep=1000)
+draw(m1.Copep.T2)
+concrvity(m1.Copep.T2)
+par(mfrow = c(2, 2))
+plot(m1.Copep.T2, all.terms = TRUE, page=1)
+
+
+###########  
+#plot for the model output on rawdata
+Copep.T2.mod.plot<-
+  plot_smooths(
+  model = m1.Copep.T2,
+  series = plant.mass..g,
+  comparison=Treatment,
+) + 
+  geom_point(data=zoop.all[(zoop.all$Time.point=="T2"),], 
+             aes(x=plant.mass..g, y=Copepods, color=Treatment)) +
+  scale_color_manual(values = c("brown1", "mediumseagreen")) + 
+  coord_cartesian(ylim=c(0, 30)) +
+  ggtitle("Day-31") +
+  ylab("Copepods density (#/L)") +
+  xlab("plant material (g)") +
+  Fig.formatting
+
+
+
+############################
+######## T3 model
+m1.Copep.T3<-gam(Copepods~ Treatment + s(plant.mass..g, by= Treatment), subset = Time.point=="T3", data = zoop.all, method = "REML")
+
+m2.Copep.T3<-gam(Copepods ~  Treatment + s(plant.mass..g), subset = Time.point=="T3", data = zoop.all, method = "REML")
+
+m3.Copep.T3<-gam(Copepods ~  s(plant.mass..g), subset = Time.point=="T3", data = zoop.all, method = "REML")
+
+T3.Copep.AIC<-AIC(m1.Copep.T3, m2.Copep.T3, m3.Copep.T3)
+# best is smoother solo
+
+summary(m3.Copep.T3)
+anova.gam(m3.Copep.T3)
+gam.check(m3.Copep.T3, rep=1000)
+draw(m3.Copep.T3)
+concrvity(m3.Copep.T3)
+par(mfrow = c(2, 2))
+plot(m3.Copep.T3, all.terms = TRUE, page=1)
+
+
+###########  
+#plot for the model output on rawdata
+Copep.T3.mod.plot<-
+  plot_smooths(
+  model = m3.Copep.T3,
+  series = plant.mass..g
+) + 
+  geom_point(data=zoop.all[(zoop.all$Time.point=="T3"),], 
+             aes(x=plant.mass..g, y=Copepods, color=Treatment)) +
+  scale_color_manual(values = c("brown1", "mediumseagreen")) + 
+  coord_cartesian(ylim=c(0, 30)) +
+  ggtitle("Day-59") +
+  ylab("Copepods density (#/L)") +
+  xlab("plant material (g)") +
+  Fig.formatting
+
+
+############################
+######## T4 model
+m1.Copep.T4<-gam(Copepods~ Treatment + s(plant.mass..g, by= Treatment), subset = Time.point=="T4", data = zoop.all, method = "REML")
+
+m2.Copep.T4<-gam(Copepods ~  Treatment + s(plant.mass..g), subset = Time.point=="T4", data = zoop.all, method = "REML")
+
+m3.Copep.T4<-gam(Copepods ~  s(plant.mass..g), subset = Time.point=="T4", data = zoop.all, method = "REML")
+
+T4.Copep.AIC<-AIC(m1.Copep.T4, m2.Copep.T4, m3.Copep.T4)
+# best is smoother solo
+
+summary(m3.Copep.T4)
+anova.gam(m3.Copep.T4)
+gam.check(m3.Copep.T4, rep=1000)
+draw(m3.Copep.T4)
+concrvity(m3.Copep.T4)
+par(mfrow = c(2, 2))
+plot(m3.Copep.T4, all.terms = TRUE, page=1)
+
+
+
+###########  
+#plot for the model output on rawdata
+Copep.T4.mod.plot<-
+  plot_smooths(
+  model = m3.Copep.T4,
+  series = plant.mass..g,
+) + 
+  geom_point(data=zoop.all[(zoop.all$Time.point=="T4"),], 
+             aes(x=plant.mass..g, y=Copepods, color=Treatment)) +
+  scale_color_manual(values = c("brown1", "mediumseagreen")) + 
+  coord_cartesian(ylim=c(0, 30)) +
+  ggtitle("Day-89") +
+  ylab("Copepods density (#/L)") +
+  xlab("plant material (g)") +
+  Fig.formatting
+
+```
+
+
 ### Compiled and single species density plots 
 * models for T0 (not vital) and the 4 sampling points: T1-T4  
 ```{r compiled plots}
@@ -1465,37 +1895,67 @@ Kellic.plots<-plot_grid(
 ggsave("figures/Kellicottia.alltimes.mod.pdf", height=6, width=12)
 
 
+### just Daphniidae
+Daphniidae.plots<-plot_grid(
+  daphniid.T1.mod.plot+ theme(legend.position = "none"),
+  daphniid.T2.mod.plot+ theme(legend.position = "none"),
+  daphniid.T3.mod.plot+ theme(legend.position = "none"),
+  daphniid.T4.mod.plot+ theme(legend.position = "none"),
+  extract.legend,
+  rel_widths = c(8,8,8,8,3), ncol=5, 
+  labels=c('A', 'B', 'C', 'D', ''), label_size=10)
+ggsave("figures/Daphniidae.alltimes.mod.pdf", height=6, width=12)
+
+
+### just Copepods
+Copepod.plots<-plot_grid(
+  Copep.T1.mod.plot+ theme(legend.position = "none"),
+  Copep.T2.mod.plot+ theme(legend.position = "none"),
+  Copep.T3.mod.plot+ theme(legend.position = "none"),
+  Copep.T4.mod.plot+ theme(legend.position = "none"),
+  extract.legend,
+  rel_widths = c(8,8,8,8,3), ncol=5, 
+  labels=c('A', 'B', 'C', 'D', ''), label_size=10)
+ggsave("figures/Copepods.alltimes.mod.pdf", height=6, width=12)
 
 
 #################################### Model plots for mosquitos
 ######### Mosquito model plots
 Mos.plot.dids<-plot_grid(
- mos.diff.T1 + theme(legend.position = "Mosquito Day-10"),
- mos.diff.T2 + theme(legend.position = "Day-31"),
- mos.diff.T3 + theme(legend.position = "Day-59"), 
- mos.diff.T4 + theme(legend.position = "Day-89"),
+ mos.diff.T1 + ggtitle("Mosquito Day-10"),
+ mos.diff.T2 + ggtitle("Day-31"),
+ mos.diff.T3 + ggtitle("Day-59"), 
+ mos.diff.T4 + ggtitle("Day-89"),
  rel_widths = c(8,8,8,8), ncol=4)
 ggsave("figures/Mos.mod.diff.pdf", height=3, width=11)
   
 
 #################################### Compiled
-### compile the Daph and Mosquitos
-Daph.Mos<-plot_grid(
-  daph.T1.mod.plot+ theme(legend.position = "none"),
-  daph.T2.mod.plot+ theme(legend.position = "none"),
-  daph.T3.mod.plot+ theme(legend.position = "none"),
-  daph.T4.mod.plot+ theme(legend.position = "none"), extract.legend,
+### compile the Daph and Copepods, Mosquitos
+Daph.Cop.Mos<-plot_grid(
+  daphniid.T1.mod.plot+ theme(legend.position = "none") + ggtitle("Daphniidae- Day 10"),
+  daphniid.T2.mod.plot+ theme(legend.position = "none"),
+  daphniid.T3.mod.plot+ theme(legend.position = "none"),
+  daphniid.T4.mod.plot+ theme(legend.position = "none"), extract.legend,
   
-  mos.T1.mod.plot+ theme(legend.position = "none"),
+  Copep.T1.mod.plot+ theme(legend.position = "none") + ggtitle("Copepoda- Day 10"),
+  Copep.T2.mod.plot+ theme(legend.position = "none"),
+  Copep.T3.mod.plot+ theme(legend.position = "none"),
+  Copep.T4.mod.plot+ theme(legend.position = "none"),
+  extract.legend,
+  
+  mos.T1.mod.plot+ theme(legend.position = "none") + ggtitle("Mosquito- Day 10"),
   mos.T2.mod.plot+ theme(legend.position = "none"),
   mos.T3.mod.plot+ theme(legend.position = "none"),
   mos.T4.mod.plot+ theme(legend.position = "none"), extract.legend,
   
-  rel_widths = c(8,8,8,8,3, 8,8,8,8,3), ncol=5, 
+  rel_widths = c(8,8,8,8,3, 8,8,8,8,3,8,8,8,8,3), ncol=5, 
   labels=c('A', '', '', '', '',
-           'B', '', '', '', ''), label_size=10)
-ggsave("figures/Daph.Mos.alltimes.pdf", height=8, width=12)
+           'B', '', '', '', '',
+           'C', '', '', '', ''), label_size=10)
+ggsave("figures/Daph.Cope.Mos.alltimes.pdf", height=12, width=12)
 ```
+
 
 ### Density stacked bar plot
 * abundance summing to 1.0
@@ -1513,12 +1973,15 @@ z3[make.fac] <- lapply(z3[make.fac], factor) # make all these factors
 z3$plant.mass..g<-as.numeric(z3$plant.mass..g)
 
 
-p7<-ggplot(z3,aes(fill=spp, y=Density.mean, x=plant.mass..g)) +
+abundance.density.plot<-ggplot(z3,aes(fill=spp, y=Density.mean, x=plant.mass..g)) +
   geom_bar(stat="identity", position="fill", width = 12)+
   theme(axis.text.x = element_text(angle = 90, hjust = 1)) +
   facet_grid(rows=vars(Date.collected), cols=vars(Treatment))+
   labs(x = "Treatment")
-p7
+
+abundance.density.plot
+ggsave("figures/Abundance.density.plot.pdf", height=8, width=6)
+
 ```
 
 ### Density stacked bar plot v2
@@ -1668,7 +2131,7 @@ ecor1<-as.data.frame(PCA1$rotation[,c(1:2)])
 scores1$mass.rank<-trunc(rank(scores1$plant.mass..g))
 
 
-PCplot1<-ggplot() +
+PCplot1.hell<-ggplot() +
   geom_point(data=scores1, aes(PC1, PC2, colour=Treatment, fill=Treatment, size=mass.rank*2), alpha=0.3) + 
   geom_segment(data = ecor1,aes(x = 0, y = 0, xend = PC1, yend = PC2), 
                arrow = arrow(angle=22.5,length = unit(0.35,"cm"),
@@ -1677,7 +2140,7 @@ PCplot1<-ggplot() +
   ggtitle("Time point 1")+
   labs(x=paste("PC 1 (", format(100 *jj1$importance[2,1], digits=4), "%)", sep=""),
        y=paste("PC 2 (", format(100 *jj1$importance[2,2], digits=4), "%)", sep=""))
-PCplot1
+PCplot1.hell
 
 apply(zoop1, 1, function(x) !all(x==0)) # Need to remove rows of all 0s for the permanova
 adonis(zoop1[-5,]~scores1$Treatment[-5]*scores1$plant.mass..g[-5])
@@ -1700,7 +2163,7 @@ ecor2<-as.data.frame(PCA2$rotation[,c(1:2)])
 jj2<-summary(PCA2)
 scores2$mass.rank<-trunc(rank(scores2$plant.mass..g))
 
-PCplot2<-ggplot() +
+PCplot2.hell<-ggplot() +
   geom_point(data=scores2, aes(PC1, PC2, colour=Treatment, fill=Treatment, size=mass.rank), alpha=0.3) + 
   geom_segment(data = ecor2,aes(x = 0, y = 0, xend = PC1, yend = PC2), 
                arrow = arrow(angle=22.5,length = unit(0.35,"cm"),
@@ -1709,7 +2172,7 @@ PCplot2<-ggplot() +
   ggtitle("Time point 2")+
   labs(x=paste("PC 1 (", format(100 *jj2$importance[2,1], digits=4), "%)", sep=""),
        y=paste("PC 2 (", format(100 *jj2$importance[2,2], digits=4), "%)", sep=""))
-PCplot2
+PCplot2.hell
 
 t2zoop<-dbrda(zoop2~scores2$Treatment*scores2$plant.mass..g) 
 anova(t2zoop)
@@ -1726,7 +2189,7 @@ jj3<-summary(PCA3)
 scores3$mass.rank<-trunc(rank(scores3$plant.mass..g))
 
 
-PCplot3<-ggplot() +
+PCplot3.hell<-ggplot() +
   geom_point(data=scores3, aes(PC1, PC2, colour=Treatment, fill=Treatment, size=mass.rank), alpha=0.3) + 
   geom_segment(data = ecor3,aes(x = 0, y = 0, xend = PC1, yend = PC2), 
                arrow = arrow(angle=22.5,length = unit(0.35,"cm"),
@@ -1735,7 +2198,7 @@ PCplot3<-ggplot() +
   ggtitle("Time point 3")+
   labs(x=paste("PC 1 (", format(100 *jj3$importance[2,1], digits=4), "%)", sep=""),
        y=paste("PC 2 (", format(100 *jj3$importance[2,2], digits=4), "%)", sep=""))
-PCplot3
+PCplot3.hell
 
 t3zoop<-dbrda(zoop3~scores3$Treatment*scores3$plant.mass..g) 
 anova(t3zoop)
@@ -1753,7 +2216,7 @@ jj4<-summary(PCA4)
 scores4$mass.rank<-trunc(rank(scores4$plant.mass..g))
 
 
-PCplot4<-ggplot() +
+PCplot4.hell<-ggplot() +
   geom_point(data=scores4, aes(PC1, PC2, colour=Treatment, fill=Treatment, size=mass.rank), alpha=0.3) + 
   geom_segment(data = ecor4,aes(x = 0, y = 0, xend = PC1, yend = PC2), 
                arrow = arrow(angle=22.5,length = unit(0.35,"cm"),
@@ -1762,13 +2225,20 @@ PCplot4<-ggplot() +
   ggtitle("Time point 4")+
   labs(x=paste("PC 1 (", format(100 *jj3$importance[2,1], digits=4), "%)", sep=""),
        y=paste("PC 2 (", format(100 *jj3$importance[2,2], digits=4), "%)", sep=""))
-PCplot4
+PCplot4.hell
 
 t4zoop<-dbrda(zoop4~scores4$Treatment*scores4$plant.mass..g) 
 anova(t4zoop)
 anova(t4zoop, by="terms", permu=800)
 
 
+```
+
+```{r}
+# combine hellinger PCAs
+
+Hel.PCA<-plot_grid(PCplot1.hell, PCplot2.hell, PCplot3.hell, PCplot4.hell, ncol=2)
+ggsave("figures/Hell.PCA.pdf", height=8, width=10)
 ```
 
 
