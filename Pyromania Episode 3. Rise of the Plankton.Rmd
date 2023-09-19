@@ -348,8 +348,24 @@ SG.T4.mod.plot<-
 
 ```
 
-Compile the figures for flow cytometry
+Export model outputs and compile the figures for flow cytometry
 ```{r fcm comp figs}
+#######################
+## export model selection parameters
+mod.rep<-rep(c("~Treatment + s(plant.mass..g, by= Treatment)", 
+              "~Treatment + s(plant.mass..g)", 
+              "~s(plant.mass..g)"), times=3)
+
+mod.Fcm.df<- data.frame(mod.rep)
+
+AIC.AF<-bind_rows(T1.AF.AIC, T3.AF.AIC, T4.AF.AIC, T1.SG.AIC, T3.SG.AIC, T4.SG.AIC)
+AIC.Fcm.mod<-cbind(mod.Fcm.df, AIC.AF)
+
+write.csv(AIC.Fcm.mod, "output/AIC models/AIC.Fcm.csv")
+
+#######################
+### make the figure
+
 extract.legend <- get_legend(
   # create some space to the left of the legend
   SG.T4.mod.plot + theme(legend.box.margin = margin(0, 0, 0, 10)))
@@ -386,7 +402,7 @@ FCM.alltimes
 
 ### Zooplankton/Larvae Community. 
 Counts of zooplankton to get density and community compositions. First, smith-it a bit to cleanup the data and organize for analysis. Models run for T1-T4.  
-```{r zoop data, results='hide', fig.show='hide'}
+```{r zoop wrangle, results='hide', fig.show='hide'}
 plank<-read.csv("data/zooplankton/Pyro_Master zoop data.csv")
 names(plank)
 
@@ -452,7 +468,7 @@ levels(as.factor(zoop$Date.collected))
 table(zoop$Tank[zoop$Date.collected=="2021-11-03"], zoop$spp[zoop$Date.collected=="2021-11-03"])
 
 # reorder columns and export
-zoop<- zoop %>% select(Time.point, Date.collected, Treatment, plant.mass..g, Tank, spp, Density)
+zoop<- zoop %>% dplyr::select(Time.point, Date.collected, Treatment, plant.mass..g, Tank, spp, Density)
 
 write.csv(zoop, "output/Pyro_zoop_cleaned.csv")
 #############################################
@@ -1772,10 +1788,28 @@ mos.T4.mod.plot<-
 
 ```
 
-
+* compile outputs from models
 * Compiled and single species density plots 
 * models for T0 (not vital) and the 4 sampling points: T1-T4  
 ```{r compiled plots}
+################
+
+## export model selection parameters
+mod.rep<-rep(c("~Treatment + s(plant.mass..g, by= Treatment)", 
+              "~Treatment + s(plant.mass..g)", 
+              "~s(plant.mass..g)"), times=12)
+
+mod.zoop.df<- data.frame(mod.rep)
+
+AIC.AF<-bind_rows(T1.daphniid.AIC, T2.daphniid.AIC, T3.daphniid.AIC, T4.daphniid.AIC, 
+                  T1.Copep.AIC, T2.Copep.AIC, T3.Copep.AIC, T4.Copep.AIC,
+                  T1.mos.AIC, T2.mos.AIC, T3.mos.AIC, T4.mos.AIC)
+AIC.Zoop.mod<-cbind(mod.zoop.df, AIC.AF)
+
+write.csv(AIC.Zoop.mod, "output/AIC models/AIC.Zoops.csv")
+
+
+################
 # compile figs
 
 ### just daphnia
@@ -1916,7 +1950,7 @@ zoop.comm$plant.mass..g<-as.numeric(zoop.comm$plant.mass..g)
 
 
 library('dplyr')
-zoop.comm$Days<-recode(zoop.comm$Time.point, T0 = 'Day-0', 
+zoop.comm$Days<-dplyr::recode(zoop.comm$Time.point, T0 = 'Day-0', 
                          T1 = 'Day-10',
                          T2 = 'Day-31',
                          T3 = 'Day-59',
@@ -1953,7 +1987,7 @@ p8 #position="fill"
 
 
 ### Greenhouse Gas Isotopes
-```{r}
+```{r load GHGs}
 GHG<-read.csv("data/Pyro_ghg_d13C.csv")
 GHG<-na.omit(GHG) # remove NAs
 
@@ -1963,12 +1997,11 @@ GHG[make.fac] <- lapply(GHG[make.fac], factor) # make all these factors
 GHG$plant.mass..g<-as.numeric(GHG$plant.mass..g)
 
 # rename
-GHG<- GHG %>% rename("GHG.nM" = "GHGwater..nmol.GHG..L.H2O")
+GHG<- GHG %>% dplyr::rename("GHG.nM" = "GHGwater..nmol.GHG..L.H2O")
 
 # reorder columns and export
-GHG<- GHG %>% select(Time.point, Treatment, plant.mass..g, Tank, Gas, GHG.nM, d13C)
+GHG<- GHG %>% dplyr::select(Time.point, Treatment, plant.mass..g, Tank, Gas, GHG.nM, d13C)
 
-GHG<-GHG[!(GHG$GHG.nM < 0),]
 #############################################
 
 ```
@@ -1978,6 +2011,8 @@ What does CO2-d13C look like?
 ```{r CO2 model plots}
 ############# GHG plots and models
 #### CO2
+CO2<-GHG[(GHG$Gas=="CO2"),]
+
 #######-- T0
 
 m1.T0.CO2.d13C<- gam(d13C ~ Treatment +
@@ -2128,7 +2163,7 @@ CO2.d13C.T2.mod.plot<-
   scale_color_manual(values = c("brown1", "mediumseagreen")) +
   ylab(expression(paste(delta^{13}, CO2, " (\u2030, air)"))) +
   xlab("plant material (g)") +
-  ggtitle("Time-0") +
+  ggtitle("Time-2") +
   coord_cartesian(ylim=c(-30,0)) +
   Fig.formatting +
   theme(legend.key.size = unit(1,"line"))
@@ -2175,14 +2210,14 @@ CO2.d13C.T3.mod.plot<-
   plot_smooths(
   model = m1.T3.CO2.d13C,
   series = plant.mass..g,
-  comparison = Treatment
+  comparison= Treatment
 )  + theme(legend.position = "none") +
   geom_point(data=CO2[(CO2$Time.point=="T3"),], 
              aes(x=plant.mass..g, y=d13C, color=Treatment)) +
   scale_color_manual(values = c("brown1", "mediumseagreen")) +
   ylab(expression(paste(delta^{13}, CO2, " (\u2030, air)"))) +
   xlab("plant material (g)") +
-  ggtitle("Time-0") +
+  ggtitle("Time-3") +
   coord_cartesian(ylim=c(-30, 0)) +
   Fig.formatting +
   theme(legend.key.size = unit(1,"line"))
@@ -2224,6 +2259,8 @@ What does CH4-d13C look like?
 ```{r CH4 model plots}
 ############# GHG plots and models
 #### CH4
+CH4<-GHG[(GHG$Gas=="CH4"),]
+
 #######-- T0
 
 m1.T0.CH4.d13C<- gam(d13C ~ Treatment +
@@ -2261,7 +2298,7 @@ CH4.d13C.diff.T0<-plot_difference(
 CH4.d13C.T0.mod.plot<-
   plot_smooths(
   model = m3.T0.CH4.d13C,
-  series = plant.mass..g,
+  series = plant.mass..g
 )  + theme(legend.position = "none") +
   geom_point(data=CH4[(CH4$Time.point=="T0"),], 
              aes(x=plant.mass..g, y=d13C, color=Treatment)) +
