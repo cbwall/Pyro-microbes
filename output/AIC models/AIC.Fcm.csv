@@ -1,19 +1,19 @@
-"","mod.rep","df","AIC"
-"m1.AF.T1","~Treatment + s(plant.mass..g, by= Treatment)",5.00095325836457,910.417019059623
-"m2.AF.T1","~Treatment + s(plant.mass..g)",4.00053450538203,908.55205351864
-"m3.AF.T1","~s(plant.mass..g)",3.00054775958901,907.004266858741
-"m1.AF.T3","~Treatment + s(plant.mass..g, by= Treatment)",5.82600427362745,818.926372202975
-"m2.AF.T3","~Treatment + s(plant.mass..g)",4.90059719875664,818.308131844655
-"m3.AF.T3","~s(plant.mass..g)",3.6354887580202,818.163857747842
-"m1.AF.T4","~Treatment + s(plant.mass..g, by= Treatment)",7.52926751996345,961.220329903015
-"m2.AF.T4","~Treatment + s(plant.mass..g)",4.00061579914943,961.996134312479
-"m3.AF.T4","~s(plant.mass..g)",3.00059179978839,961.404213527858
-"m1.SG.T1","~Treatment + s(plant.mass..g, by= Treatment)",10.1948936279895,1017.57294207311
-"m2.SG.T1","~Treatment + s(plant.mass..g)",7.51793923121986,1011.28476994729
-"m3.SG.T1","~s(plant.mass..g)",6.52201917938921,1010.19750984321
-"m1.SG.T3","~Treatment + s(plant.mass..g, by= Treatment)",5.14180911251035,926.503395410594
-"m2.SG.T3","~Treatment + s(plant.mass..g)",4.00124134769188,925.458564416085
-"m3.SG.T3","~s(plant.mass..g)",3.00123695948328,923.794803593896
-"m1.SG.T4","~Treatment + s(plant.mass..g, by= Treatment)",5.00082898025705,979.148263436323
-"m2.SG.T4","~Treatment + s(plant.mass..g)",4.0004915238092,998.867689920147
-"m3.SG.T4","~s(plant.mass..g)",3.00093065076371,998.132909555716
+,mod.rep,df,AIC,dAIC,
+m1.AF.T1,"~Treatment + s(plant.mass..g, by= Treatment)",5.0,910.4,,
+m2.AF.T1,~Treatment + s(plant.mass..g),4.0,908.6,,
+m3.AF.T1,~s(plant.mass..g),3.0,907.0,0.0,*
+m1.AF.T3,"~Treatment + s(plant.mass..g, by= Treatment)",5.8,818.9,,
+m2.AF.T3,~Treatment + s(plant.mass..g),4.9,818.3,,
+m3.AF.T3,~s(plant.mass..g),3.6,818.2,0.0,*
+m1.AF.T4,"~Treatment + s(plant.mass..g, by= Treatment)",7.5,961.2,-0.2,*
+m2.AF.T4,~Treatment + s(plant.mass..g),4.0,962.0,,
+m3.AF.T4,~s(plant.mass..g),3.0,961.4,,
+m1.SG.T1,"~Treatment + s(plant.mass..g, by= Treatment)",10.2,1017.6,,
+m2.SG.T1,~Treatment + s(plant.mass..g),7.5,1011.3,,
+m3.SG.T1,~s(plant.mass..g),6.5,1010.2,0.0,*
+m1.SG.T3,"~Treatment + s(plant.mass..g, by= Treatment)",5.1,926.5,,
+m2.SG.T3,~Treatment + s(plant.mass..g),4.0,925.5,,
+m3.SG.T3,~s(plant.mass..g),3.0,923.8,0.0,*
+m1.SG.T4,"~Treatment + s(plant.mass..g, by= Treatment)",5.0,979.1,-19.0,*
+m2.SG.T4,~Treatment + s(plant.mass..g),4.0,998.9,,
+m3.SG.T4,~s(plant.mass..g),3.0,998.1,,
