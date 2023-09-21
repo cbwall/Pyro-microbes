@@ -387,16 +387,15 @@ FCM.alltimes
 
 #### model fits
 FCM.mod.dif<-plot_grid(
-  AF.diff.T1+ theme(legend.position = "none")+ ggtitle("AF Day-10"),
-  AF.diff.T3+ theme(legend.position = "none")+ ggtitle("AF-Day-59"),
+  #AF.diff.T1+ theme(legend.position = "none")+ ggtitle("AF Day-10"),
+  #AF.diff.T3+ theme(legend.position = "none")+ ggtitle("AF-Day-59"),
   AF.diff.T4+ theme(legend.position = "none")+ ggtitle("AF-Day-89"),
-  SG.diff.T1+ theme(legend.position = "none")+ ggtitle("SG Day-10"),
-  SG.diff.T3+ theme(legend.position = "none")+ ggtitle("SG-Day-59"),
+  #SG.diff.T1+ theme(legend.position = "none")+ ggtitle("SG Day-10"),
+  #SG.diff.T3+ theme(legend.position = "none")+ ggtitle("SG-Day-59"),
   SG.diff.T4+ theme(legend.position = "none")+ ggtitle("SG-Day-89"),
-  rel_widths = c(8,8,8,8,8,8), ncol=3)
-ggsave("figures/FCM.mod.diff.pdf", height=6, width=9)
-
-FCM.alltimes
+  ncol=1)
+FCM.mod.dif
+ggsave("figures/FCM.mod.diff.pdf", height=7, width=4)
 ```
 
 
@@ -685,9 +684,7 @@ daphniid.T4.mod.plot<-
 
 ```
 
-#### Daphnia density    
-* models for T0 (not vital) and the 4 sampling points: T1-T4  
-```{r zoop model plots, results='hide', fig.show='hide'}
+```{r Daphnia model plots, results='hide', fig.show='hide', eval = FALSE}
 ######### Daphnia
 
 zoop.all<-pivot_wider(z.mean.density, names_from="spp", values_from="Density.mean")
@@ -900,7 +897,7 @@ daph.T4.mod.plot<-
 
 ```
 
-#### Copepods. 
+#### Copepoda 
 *Copepods grouped* = calanoids, cyclopoids, nauplii
 ```{r, Copepods}
 ######### Copepods
@@ -1001,6 +998,17 @@ par(mfrow = c(2, 2))
 plot(m1.Copep.T2, all.terms = TRUE, page=1)
 
 
+# model predictions
+Copep.diff.T2<-plot_difference(
+  m1.Copep.T2,
+  series = plant.mass..g,
+  difference = list(Treatment = c("burned", "unburned"))
+)
+
+# save model diff here,  it matters
+Copep.diff.T2
+ggsave("figures/Copep.moddiff.T2.pdf", height=4, width=4)
+
 ###########  
 #plot for the model output on rawdata
 Copep.T2.mod.plot<-
@@ -1017,7 +1025,6 @@ Copep.T2.mod.plot<-
   ylab("Copepods density (#/L)") +
   xlab("plant material (g)") +
   Fig.formatting
-
 
 
 ############################
@@ -1077,7 +1084,6 @@ par(mfrow = c(2, 2))
 plot(m3.Copep.T4, all.terms = TRUE, page=1)
 
 
-
 ###########  
 #plot for the model output on rawdata
 Copep.T4.mod.plot<-
@@ -1096,8 +1102,7 @@ Copep.T4.mod.plot<-
 
 ```
 
-*Calanoid density*
-```{r calanoid model plots, results='hide', fig.show='hide'}
+```{r calanoid model plots, results='hide', fig.show='hide', eval=FALSE}
 # Calanoid
 
 ######## T1 model
@@ -1275,9 +1280,7 @@ calan.T4.mod.plot<-
   Fig.formatting
 
 ```
-
-*Cyclopoid density*
-```{r cyclopoid model plots, results='hide', fig.show='hide'}
+```{r cyclopoid model plots, results='hide', fig.show='hide', eval=FALSE}
 # cyclopoid
 
 ######## T1 model
@@ -1438,9 +1441,7 @@ cyclo.T4.mod.plot<-
   Fig.formatting
 
 ```
-
-*Nauplii density*
-```{r nauplii, results='hide', fig.show='hide'}
+```{r nauplii model plots, results='hide', fig.show='hide', eval=FALSE}
 # Nauplii
 
 ######## T1 model
@@ -1791,7 +1792,7 @@ mos.T4.mod.plot<-
 * compile outputs from models
 * Compiled and single species density plots 
 * models for T0 (not vital) and the 4 sampling points: T1-T4  
-```{r compiled plots}
+```{r compiled model outputs, results='hide'}
 ################
 
 ## export model selection parameters
@@ -1807,8 +1808,9 @@ AIC.AF<-bind_rows(T1.daphniid.AIC, T2.daphniid.AIC, T3.daphniid.AIC, T4.daphniid
 AIC.Zoop.mod<-cbind(mod.zoop.df, AIC.AF)
 
 write.csv(AIC.Zoop.mod, "output/AIC models/AIC.Zoops.csv")
+```
 
-
+```{r zoop plots notused, eval=FALSE}
 ################
 # compile figs
 
@@ -1872,8 +1874,9 @@ ggsave("figures/Naupl.alltimes.mod.pdf", height=6, width=12)
 Kellic.plots<-plot_grid(
   kelli.T1.mod.plot, ncol=1)
 ggsave("figures/Kellicottia.alltimes.mod.pdf", height=6, width=12)
+```
 
-
+```{r compiled plots 3 groups}
 ### just Daphniidae
 Daphniidae.plots<-plot_grid(
   daphniid.T1.mod.plot+ theme(legend.position = "none"),
