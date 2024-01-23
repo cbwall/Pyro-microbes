@@ -28,11 +28,11 @@ The goal of the *Pyromania project* is to test how terrestrial subsides (plant b
 This data set is among 3 to be generated for the project and focuses on:  
 
 (1) **microbes (16S rRNA) communities** over time and in 'reservoirs'
-- water-borne microbes
-- associated with plant detritus
-- host-associated (zooplankton and insect [mosquito] larvae)
+- water-borne microbes through time
+- associated with plant detritus (terminal sampling)
+- host-associated (zooplankton and insect [mosquito] larvae, terminal sampling)
 (2) **microbial cell abundance**, assessed through flow cytometry of autotrophic and heterotrophic cells
-(3) **zooplankton community**, primarily Daphniidae (cladocerans) and copepods 
+(3) **zooplankton community**, primarily Daphniidae (cladocerans), copepods, and mosquitoes
 (4) **δ^13^C of greenhouse gases** carbon dioxide (CO~2~), methane (CH~4~)
   
    
@@ -43,6 +43,7 @@ This data set is among 3 to be generated for the project and focuses on:
 * Time-2 (**T2**) = 31 days after ...  
 * Time-3 (**T3**) = 59 days after ...  
 * Time-4 (**T4**) = 89 days after ... 
+* Time-5 (**T5**) = 124 days after ...
 
 ```{r setup chunk, setup, include = FALSE, cache=FALSE, message=FALSE, warning=FALSE}
 if (!require('knitr')) install.packages('knitr'); library('knitr')
@@ -52,7 +53,7 @@ knitr::opts_chunk$set(warning=FALSE, message=FALSE, fig.align='center')
 if (!require("pacman")) install.packages("pacman") # for rapid install if not in library
 
 # use pacman to load all the packages you are missing!
-pacman::p_load('knitr', 'lme4', 'lmerTest', 'tidyverse', 'magrittr', 'effects', 'plyr', 'dplyr', 'plotrix', 'car',"gridExtra", "cowplot", "tools", "mgcv", "gratia", "MASS", "stats", "tidymv", "sjstats", "coin", "emmeans", "doBy", "forcats", "ggplot2")
+pacman::p_load('knitr', 'lme4', 'lmerTest', 'tidyverse', 'magrittr', 'effects', 'plyr', 'dplyr', 'plotrix', 'car',"gridExtra", "cowplot", "tools", "mgcv", "gratia", "MASS", "stats", "tidymv", "sjstats", "coin", "emmeans", "doBy", "forcats", "ggplot2", "SiZer")
 
 Fig.formatting<-(theme_classic()) +
   theme(text=element_text(size=10),
@@ -73,9 +74,9 @@ Fig.formatting<-(theme_classic()) +
 
 ```
 
-### FCM 
+### Flow Cytometry 
 Flow Cytometry data here is used to determine the abundance of autotrophic (primary producers, photosynthesizers) and heterotrophic (no photopigments) bacterial cells. 
-```{r}
+```{r, FCM}
 fcm.df<-read.csv("data/Pyro_fcm.csv")
 
 cols<-c("Time.point", "Tank", "Treatment")
@@ -258,6 +259,21 @@ SG.T1.mod.plot<-
   ylab("SG sum") +
   xlab("plant material (g)") +
   Fig.formatting
+
+
+############## testing SiZer
+x1 <- fcm.df[(fcm.df$Time.point=="T1"),]
+x <- x1$plant.mass..g
+y <- x1$sg_sum
+
+plot(x,y)
+
+# Calculate the SiZer map for the first derivative
+SiZer.1 <- SiZer(x, y, h=c(50,100), degree=2, derv=2, grid.length=50)
+plot(SiZer.1)
+plot(SiZer.1, ggplot2=TRUE)
+###########
+
 
 
 ### Time 3
@@ -1254,6 +1270,9 @@ What does CO2-d13C look like?
 #### CO2
 CO2<-GHG[(GHG$Gas=="CO2"),]
 
+amb.CO2<-(-11.14 + -10.92 + -11.45 + -11.35)/4
+
+
 #######-- T0
 
 m1.T0.CO2.d13C<- gam(d13C ~ Treatment +
@@ -1297,7 +1316,8 @@ CO2.d13C.T0.mod.plot<-
   geom_point(data=CO2[(CO2$Time.point=="T0"),], 
              aes(x=plant.mass..g, y=d13C, color=Treatment)) +
   scale_color_manual(values = c("brown1", "mediumseagreen")) +
-  ylab(expression(paste(delta^{13}, CO2, " (\u2030, air)"))) +
+  geom_hline(yintercept=amb.CO2, linetype="dashed", color = "gray60")+
+  ylab(expression(paste(delta^{13}, CO[2], " (\u2030, air)"))) +
   xlab("plant material (g)") +
   ggtitle("Time-0") +
   coord_cartesian(ylim=c(-30, 0)) +
@@ -1349,7 +1369,8 @@ CO2.d13C.T1.mod.plot<-
   geom_point(data=CO2[(CO2$Time.point=="T1"),], 
              aes(x=plant.mass..g, y=d13C, color=Treatment)) +
   scale_color_manual(values = c("brown1", "mediumseagreen")) +
-  ylab(expression(paste(delta^{13}, CO2, " (\u2030, air)"))) +
+  ylab(expression(paste(delta^{13}, CO[2], " (\u2030, air)"))) +
+  geom_hline(yintercept=amb.CO2, linetype="dashed", color = "gray60")+
   xlab("plant material (g)") +
   ggtitle("Time-1") +
   coord_cartesian(ylim=c(-30, 0)) +
@@ -1402,7 +1423,8 @@ CO2.d13C.T2.mod.plot<-
   geom_point(data=CO2[(CO2$Time.point=="T2"),], 
              aes(x=plant.mass..g, y=d13C, color=Treatment)) +
   scale_color_manual(values = c("brown1", "mediumseagreen")) +
-  ylab(expression(paste(delta^{13}, CO2, " (\u2030, air)"))) +
+  ylab(expression(paste(delta^{13}, CO[2], " (\u2030, air)"))) +
+  geom_hline(yintercept=amb.CO2, linetype="dashed", color = "gray60")+
   xlab("plant material (g)") +
   ggtitle("Time-2") +
   coord_cartesian(ylim=c(-30,0)) +
@@ -1456,7 +1478,8 @@ CO2.d13C.T3.mod.plot<-
   geom_point(data=CO2[(CO2$Time.point=="T3"),], 
              aes(x=plant.mass..g, y=d13C, color=Treatment)) +
   scale_color_manual(values = c("brown1", "mediumseagreen")) +
-  ylab(expression(paste(delta^{13}, CO2, " (\u2030, air)"))) +
+  ylab(expression(paste(delta^{13}, CO[2], " (\u2030, air)"))) +
+  geom_hline(yintercept=amb.CO2, linetype="dashed", color = "gray60")+
   xlab("plant material (g)") +
   ggtitle("Time-3") +
   coord_cartesian(ylim=c(-30, 0)) +
@@ -1501,6 +1524,7 @@ What does CH4-d13C look like?
 ############# GHG plots and models
 #### CH4
 CH4<-GHG[(GHG$Gas=="CH4"),]
+amb.CH4<- (-46.3 + -46.62 + -46.81)/3
 
 #######-- T0
 
@@ -1544,7 +1568,8 @@ CH4.d13C.T0.mod.plot<-
   geom_point(data=CH4[(CH4$Time.point=="T0"),], 
              aes(x=plant.mass..g, y=d13C, color=Treatment)) +
   scale_color_manual(values = c("brown1", "mediumseagreen")) +
- ylab(expression(paste(delta^{13}, CH4, " (\u2030, air)"))) +
+  ylab(expression(paste(delta^{13}, CH[4], " (\u2030, air)"))) +
+  geom_hline(yintercept=amb.CH4, linetype="dashed", color = "gray60")+
   xlab("plant material (g)") +
   ggtitle("Time-0") +
   coord_cartesian(ylim=c(-50, -42)) +
@@ -1596,7 +1621,8 @@ CH4.d13C.T1.mod.plot<-
   geom_point(data=CH4[(CH4$Time.point=="T1"),], 
              aes(x=plant.mass..g, y=d13C, color=Treatment)) +
   scale_color_manual(values = c("brown1", "mediumseagreen")) +
-  ylab(expression(paste(delta^{13}, CH4, " (\u2030, air)"))) +
+  ylab(expression(paste(delta^{13}, CH[4], " (\u2030, air)"))) +
+  geom_hline(yintercept=amb.CH4, linetype="dashed", color = "gray60")+
   xlab("plant material (g)") +
   ggtitle("Time-1") +
   coord_cartesian(ylim=c(-50, -42)) +
@@ -1649,7 +1675,8 @@ CH4.d13C.T2.mod.plot<-
   geom_point(data=CH4[(CH4$Time.point=="T2"),], 
              aes(x=plant.mass..g, y=d13C, color=Treatment)) +
   scale_color_manual(values = c("brown1", "mediumseagreen")) +
-  ylab(expression(paste(delta^{13}, CH4, " (\u2030, air)"))) +
+  ylab(expression(paste(delta^{13}, CH[4], " (\u2030, air)"))) +
+  geom_hline(yintercept=amb.CH4, linetype="dashed", color = "gray60")+
   xlab("plant material (g)") +
   ggtitle("Time-2") +
   coord_cartesian(ylim=c(-50, -42)) +
@@ -1703,7 +1730,8 @@ CH4.d13C.T3.mod.plot<-
   geom_point(data=CH4[(CH4$Time.point=="T3"),], 
              aes(x=plant.mass..g, y=d13C, color=Treatment)) +
   scale_color_manual(values = c("brown1", "mediumseagreen")) +
-  ylab(expression(paste(delta^{13}, CH4, " (\u2030, air)"))) +
+  ylab(expression(paste(delta^{13}, CH[4], " (\u2030, air)"))) +
+  geom_hline(yintercept=amb.CH4, linetype="dashed", color = "gray60")+
   xlab("plant material (g)") +
   ggtitle("Time-4") +
   coord_cartesian(ylim=c(-50, -42)) +
